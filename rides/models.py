@@ -23,8 +23,8 @@ class Ride(models.Model):
         CANCELLED = "cancelled", "Cancelled"
 
     class Mode(models.TextChoices):
-        DRIVER_ONLY = "driver_only", "Driver Only"  # fixed shift pricing
-        CAR_WITH_DRIVER = "car_with_driver", "Car with Driver"  # per km/min pricing
+        DRIVER_ONLY = "driver_only", "Driver Only"  
+        CAR_WITH_DRIVER = "car_with_driver", "Car with Driver"  
 
     customer = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="rides")
     driver = models.ForeignKey("accounts.Driver", on_delete=models.SET_NULL, null=True, blank=True, related_name="rides")
@@ -48,11 +48,9 @@ class Ride(models.Model):
 
     purpose = models.ForeignKey(RidePurpose, on_delete=models.SET_NULL, null=True, blank=True, related_name="rides")
 
-    # Distance/time (entered by driver after trip ends)
     actual_distance_km = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     actual_duration_min = models.PositiveIntegerField(null=True, blank=True)
 
-    # Fare fields (computed after trip)
     base_fare = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)

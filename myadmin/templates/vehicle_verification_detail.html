@@ -1,0 +1,175 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Vehicle Verification - {{ vehicle.make }} {{ vehicle.model }}{% endblock %}
+
+{% block content %}
+    <!-- Breadcrumb -->
+    <div class="mb-6">
+        <a href="{% url 'admin-vehicle-verifications' %}" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 transition-colors">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Vehicle List
+        </a>
+    </div>
+
+    <!-- Page Header & Actions -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-semibold text-gray-900 tracking-tight flex items-center gap-3">
+                {{ vehicle.make }} {{ vehicle.model }}
+                <span class="text-lg text-gray-400 font-normal">({{ vehicle.year }})</span>
+                
+                {% if vehicle.verified %}
+                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200 font-medium tracking-wide">APPROVED</span>
+                {% else %}
+                    <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full border border-yellow-200 font-medium tracking-wide">PENDING</span>
+                {% endif %}
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">Review vehicle details and photos for verification.</p>
+        </div>
+
+        <!-- Action Buttons -->
+        {% if not vehicle.verified %}
+        <div class="flex items-center gap-3">
+            <form method="post" class="inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <button type="submit" onclick="return confirm('Are you sure you want to reject this vehicle?')" class="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all">
+                    Reject Vehicle
+                </button>
+            </form>
+            
+            <form method="post" class="inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 shadow-sm transition-all">
+                    Approve Vehicle
+                </button>
+            </form>
+        </div>
+        {% else %}
+            <div class="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg border border-green-100">
+                <i class="fas fa-check-circle"></i>
+                <span class="text-sm font-medium">Vehicle is already approved</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Details Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        
+        <!-- Left Column: Specs -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Vehicle Specifications</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Registration Number</dt>
+                        <dd class="mt-1 text-sm font-mono text-gray-900 bg-gray-50 inline-block px-2 py-1 rounded border border-gray-100">
+                            {{ vehicle.registration_number }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Owner</dt>
+                        <dd class="mt-1 text-sm text-gray-900 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-500"><i class="fas fa-user"></i></span>
+                            {{ vehicle.owner.name }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Category</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ vehicle.get_vehicle_type_display }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Transmission</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ vehicle.get_transmission_display }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Fuel Type</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ vehicle.get_fuel_type_display }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Year</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ vehicle.year }}</dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Features -->
+        <div class="lg:col-span-1">
+            <div class="bg-white border border-gray-200 rounded-lg p-6 h-full">
+                <h3 class="text-base font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Features & Capacity</h3>
+                
+                <ul class="space-y-4">
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Seating Capacity</span>
+                        <span class="text-sm font-medium text-gray-900">{{ vehicle.seat_capacity }} Persons</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Air Conditioning</span>
+                        <span class="text-sm font-medium text-gray-900">
+                            {% if vehicle.ac %}
+                                <span class="text-green-600"><i class="fas fa-check mr-1"></i> Yes</span>
+                            {% else %}
+                                <span class="text-gray-400"><i class="fas fa-times mr-1"></i> No</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <!-- Add more features here if available in backend -->
+                </ul>
+                
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="bg-blue-50 border border-blue-100 rounded-md p-3">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                            <p class="text-xs text-blue-700 leading-relaxed">
+                                Ensure the vehicle images below match the registration details provided above before approving.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Images Section -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="fas fa-images text-gray-400"></i> Vehicle Images
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for image in vehicle_images %}
+            <div class="group relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <!-- Image Wrapper -->
+                <div class="aspect-w-4 aspect-h-3 bg-gray-100 overflow-hidden relative h-48">
+                    <img src="{{ image.image.url }}" alt="{{ image.caption|default:'Vehicle image' }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300">
+                    
+                    {% if image.is_primary %}
+                    <div class="absolute top-2 left-2">
+                        <span class="bg-gray-900 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm opacity-90">Primary</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- View Overlay -->
+                    <a href="{{ image.image.url }}" target="_blank" class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity flex items-center justify-center">
+                        <div class="opacity-0 group-hover:opacity-100 bg-white rounded-full p-2 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all">
+                            <i class="fas fa-expand text-gray-800"></i>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Caption -->
+                <div class="p-3 border-t border-gray-100">
+                    <p class="text-sm text-gray-700 truncate font-medium">{{ image.caption|default:"No Caption" }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-12 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400">
+                <i class="fas fa-camera text-4xl mb-3 text-gray-300"></i>
+                <p class="text-sm font-medium">No images uploaded for this vehicle.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

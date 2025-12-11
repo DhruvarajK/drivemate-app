@@ -9,16 +9,15 @@
 
 {% block content %}
 <div class="min-h-screen py-6">
-  <div class="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <!-- Header (stacks on small screens) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gapx-6 py-3 mb-6">
       <div>
         <h1 class="text-2xl font-semibold">Incoming Ride Requests</h1>
         <p class="text-sm text-gray-500 mt-1">Accept rides quickly — stay responsive to customers.</p>
       </div>
 
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex items-center gap-6 py-3 flex-wrap">
         <a href="{% url 'driver_requests_list' %}"
            class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white/80 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color)] text-sm">
           <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
@@ -33,11 +32,10 @@
       </div>
     </div>
 
-    <!-- Messages -->
     {% if messages %}
       <div class="space-y-2 mb-4">
         {% for m in messages %}
-          <div class="rounded-lg p-3 text-sm
+          <div class="rounded-lg px-6 py-3 text-sm
             {% if m.tags == 'error' %} bg-red-50 text-red-700 border border-red-100
             {% else %} bg-indigo-50 text-indigo-800 border border-indigo-100 {% endif %}">
             {{ m }}
@@ -47,11 +45,10 @@
     {% endif %}
 
     {% if ride_requests %}
-      <!-- Cards: mobile-first, hidden on md+ so table becomes primary on larger screens -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
         {% for req in ride_requests %}
         <div class="bg-white/90 backdrop-blur rounded-2xl p-4 shadow-lg border border-gray-100">
-          <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
+          <div class="flex flex-col md:flex-row items-start md:items-center gapx-6 py-3">
             <div class="flex-shrink-0">
               <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-black to-gray-800 text-white flex items-center justify-center text-lg font-bold">
                 D
@@ -59,7 +56,7 @@
             </div>
 
             <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between gap-3">
+              <div class="flex items-start justify-between gapx-6 py-3">
                 <div class="min-w-0">
                   <div class="text-sm text-gray-500">{{ req.requested_at|date:"M d, Y H:i" }}</div>
                   <h3 class="text-base sm:text-lg font-semibold mt-1 truncate">
@@ -75,25 +72,25 @@
                   </div>
                 </div>
 
-                <!-- Status badge -->
                 <div class="text-right flex-shrink-0 ml-2">
                   {% if req.get_status_display == "Pending" or req.status == req.Status.PENDING %}
                     <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-100">Pending</span>
-                  {% elif req.get_status_display == "Accepted" %}
+                  {% elif req.get_status_display == "Accepted"   %}
                     <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">Accepted</span>
+                  {% elif req.get_status_display == "Completed" or req.get_status_display == "completed" %}
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">Approved</span>
+                  
                   {% else %}
                     <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-100">{{ req.get_status_display }}</span>
                   {% endif %}
                 </div>
               </div>
 
-              <!-- Customer -->
               <div class="mt-3 text-sm text-gray-600">
                 <div class="font-medium truncate">{{ req.ride.customer.name }}</div>
                 <div class="truncate text-xs text-gray-500">{{ req.ride.customer.email }}</div>
               </div>
 
-              <!-- Actions (stacked on mobile) -->
               <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-2 gap-2">
                 <a href="{% url 'driver_request_detail' req.pk %}"
                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border bg-white hover:shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color)]">
@@ -124,47 +121,57 @@
         {% endfor %}
       </div>
 
-      <!-- Table fallback for md+ screens -->
       <div class="mt-6 overflow-x-auto hidden md:block">
-        <table class="w-full text-left rounded-lg border-collapse bg-white/80 shadow-sm">
+        <table class="w-full text-left rounded-lg border-collapse bg-white/80 shadow-sm ">
           <thead>
-            <tr class="text-sm text-gray-600 bg-white/90 border-b">
-              <th class="p-3">#</th>
-              <th class="p-3">Ride</th>
-              <th class="p-3">Customer</th>
-              <th class="p-3">Requested at</th>
-              <th class="p-3">Status</th>
-              <th class="p-3">Actions</th>
+            <tr class="text-sm text-gray-600 bg-white/90 border-b ">
+              <th class="px-6 py-3 ">#</th>
+              <th class="px-6 py-3">Ride</th>
+              <th class="px-6 py-3">Customer</th>
+              <th class="px-6 py-3">Requested at</th>
+              <th class="px-6 py-3">Request Status</th>
+              <th class="px-6 py-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for req in ride_requests %}
             <tr class="border-b hover:bg-white">
-              <td class="p-3 align-top">{{ req.pk }}</td>
-              <td class="p-3 align-top">
+              <td class="px-6 py-3 align-top">{{ req.pk }}</td>
+              <td class="px-6 py-3 align-top">
                 <div class="font-medium">{{ req.ride.start_location|before_comma }} </div>
                 <div class="font-medium">{{ req.ride.end_location|before_comma }}</div>
                 <div class="text-xs text-gray-500 mt-1">{{ req.ride.get_ride_mode_display }} • {{ req.ride.purpose|default:"—" }}</div>
               </td>
-              <td class="p-3 align-top">
+              <td class="px-6 py-3 align-top">
                 {{ req.ride.customer.name }}<br>
                 <small class="text-xs text-gray-500">{{ req.ride.customer.email }}</small>
               </td>
-              <td class="p-3 align-top">{{ req.requested_at|date:"M d, Y H:i" }}</td>
-              <td class="p-3 align-top">
+              <td class="px-6 py-3 align-top">{{ req.requested_at|date:"M d, Y H:i" }}</td>
+              <td class="px-6 py-3 align-top ">
                 {% if req.get_status_display == "Pending" or req.status == req.Status.PENDING %}
                   <span class="inline-block px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-100">Pending</span>
                 {% elif req.get_status_display == "Accepted" %}
                   <span class="inline-block px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-100">Accepted</span>
-                {% else %}
+                  {% elif req.get_status_display == "Completed" or req.get_status_display == "completed" %}
+                  <span class="inline-block px-3 py-1 rounded-full text-xs  bg-blue-50 text-blue-700 border border-blue-100">Approved</span>
+                
+                  {% else %}
                   <span class="inline-block px-3 py-1 rounded-full text-xs bg-gray-50 text-gray-700 border border-gray-100">{{ req.get_status_display }}</span>
                 {% endif %}
               </td>
-              <td class="p-3 align-top">
+              <td class="px-6 py-3 align-top flex justify-center">
                 <div class="flex items-center gap-2">
-                  <a class="inline-flex items-center gap-2 px-3 py-1 rounded border text-sm" href="{% url 'driver_request_detail' req.pk %}">
-                    <span class="material-symbols-outlined" aria-hidden="true">visibility</span> View
-                  </a>
+                  {% if req.get_status_display == "auto_cancelled" or req.get_status_display == "Auto Cancelled" or req.get_status_display == "rejected" or req.get_status_display == "Rejected" %}
+                  <button disabled class="cursor-not-allowed inline-flex items-center gap-2 px-3 py-1 rounded border text-sm" href="#">
+                    <span class="material-symbols-outlined text-gray-400">block</span><span class="text-gray-500 text-sm">Hidden</span>
+                  </button>
+                    {% else %}
+                    
+                    <a class="inline-flex  items-center gap-2 px-3 py-1 rounded border text-sm" href="{% url 'driver_request_detail' req.pk %}">
+                      <span class="material-symbols-outlined" aria-hidden="true">visibility</span> View
+                    </a>
+                  {% endif %}
+
                   {% if req.status == req.Status.PENDING %}
                     {% if has_active_ride %}
                       <button class="inline-flex items-center gap-2 px-3 py-1 rounded border text-sm cursor-not-allowed opacity-70" disabled>Accept (busy)</button>

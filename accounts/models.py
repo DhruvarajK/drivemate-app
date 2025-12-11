@@ -55,14 +55,11 @@ class Driver(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
-    # Fixed charges (owner/driver sets their own)
-    # Day = 06:00 - 18:00, Night otherwise (defaults below)
     day_fixed_charge = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"),
                                            help_text="Fixed charge for daytime (6:00–18:00)")
     night_fixed_charge = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"),
                                              help_text="Fixed charge for night (18:00–6:00)")
 
-    # Optional per-driver custom night window (defaults to 18:00–06:00)
     night_start = models.TimeField(default=_time(hour=18, minute=0))
     night_end = models.TimeField(default=_time(hour=6, minute=0))
 

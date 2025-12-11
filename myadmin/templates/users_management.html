@@ -1,0 +1,155 @@
+{% extends "dashboard.html" %}
+
+{% block title %}User Management - Admin Panel{% endblock %}
+
+{% block content %}
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-semibold text-gray-900 tracking-tight">User Management</h1>
+        <p class="mt-1 text-sm text-gray-500">View registered users, track ratings, and monitor feedback.</p>
+    </div>
+
+
+    <div class="bg-white border border-gray-200 rounded-lg p-5 mb-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row items-end gap-4">
+            <div class="w-full sm:w-64">
+                <form method="get" class="flex items-end gap-3">
+                    <div class="flex-1">
+                        <label class="block text-xs font-medium text-gray-600 mb-1 uppercase tracking-wide">Filter by Role</label>
+                        <select name="role" class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+                            <option value="">All Roles</option>
+                            {% for choice in user_role_choices %}
+                            <option value="{{ choice.0 }}" {% if request.GET.role == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-gray-800 border border-transparent rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-800 transition-all shadow-sm h-[38px]">
+                        Filter
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-10">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wide text-gray-500 font-medium">
+                        <th class="px-6 py-4 w-16 text-center">ID</th>
+                        <th class="px-6 py-4">User Details</th>
+                        <th class="px-6 py-4">Contact</th>
+                        <th class="px-6 py-4">Role</th>
+                        <th class="px-6 py-4 text-center">Rating</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    {% for user in users %}
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        
+                        <!-- ID -->
+                        <td class="px-6 py-4 text-center text-gray-400 font-mono text-xs">
+                            #{{ user.id }}
+                        </td>
+
+                        <!-- User Name & Email -->
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-xs">
+                                    {{ user.name|slice:":1"|default:"U" }}
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">{{ user.name }}</div>
+                                    <div class="text-xs text-gray-500">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Phone -->
+                        <td class="px-6 py-4 text-gray-600 font-mono text-xs">
+                            {{ user.phone|default:"-" }}
+                        </td>
+
+                        <!-- Role Badge -->
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide border
+                                {% if 'river' in user.role %}
+                                    bg-blue-50 text-blue-700 border-blue-200
+                                {% elif 'dmin' in user.role %}
+                                    bg-purple-50 text-purple-700 border-purple-200
+                                {% else %}
+                                    bg-gray-100 text-gray-600 border-gray-200
+                                {% endif %}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+
+                        <!-- Rating -->
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex flex-col items-center">
+                                <div class="flex items-center gap-1 font-medium text-gray-900">
+                                    {{ user.avg_rating|default:"0" }} <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                </div>
+                                <span class="text-[10px] text-gray-400">({{ user.total_ratings|default:"0" }} reviews)</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-400">
+                                <i class="fas fa-users-slash text-4xl mb-3 text-gray-200"></i>
+                                <p class="text-base font-medium text-gray-500">No users found</p>
+                                <p class="text-sm mt-1">Try adjusting the role filter.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Feedback Section -->
+    <div class="space-y-6">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <i class="fas fa-comments text-gray-400"></i> Recent Feedback
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for user in users %}
+                {% if user.recent_feedback %}
+                <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
+                            {{ user.name|slice:":1" }}
+                        </div>
+                        <h4 class="font-medium text-gray-900 text-sm">{{ user.name }}</h4>
+                    </div>
+                    
+                    <ul class="space-y-3">
+                        {% for fb in user.recent_feedback %}
+                        <li class="bg-gray-50 rounded-md p-3 text-xs border border-gray-100">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-gray-700">Score: {{ fb.score }}/5</span>
+                                <!-- Optional: Add icons based on score -->
+                                {% if fb.score >= 4 %}
+                                    <i class="fas fa-smile text-green-500"></i>
+                                {% elif fb.score <= 2 %}
+                                    <i class="fas fa-frown text-red-400"></i>
+                                {% else %}
+                                    <i class="fas fa-meh text-yellow-500"></i>
+                                {% endif %}
+                            </div>
+                            <p class="text-gray-600 italic">"{{ fb.feedback|default:"No feedback text provided." }}"</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}

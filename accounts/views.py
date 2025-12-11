@@ -60,11 +60,7 @@ def login_required_role(allowed_roles=None):
 
 
 def login_view(request):
-    """
-    Manual login view:
-    - POST: checks email + password (hashed stored in user.password)
-    - on success: stores user_id and user_role in session and redirects based on role
-    """
+
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
         password = request.POST.get("password") or ""
@@ -81,9 +77,22 @@ def login_view(request):
 
         if not user.is_active:
             messages.error(request, "This account is inactive. Contact support.")
-            return render(request, "accounts/login.html", {"email": email})
-
-        # check password using Django's hashers (user.password should be a hashed string)
+            return render(request, "login.html", {"email": email})
+        
+        if user.role == "driver":
+            try:
+                driver_profile = user.driver_profile  # Using related_name
+                if not driver_profile.verified:
+                    messages.error(
+                        request,
+                        "Your driver account is still under review. "
+                        "Verification is pending. You will be notified once approved."
+                    )
+                    return render(request, "login.html", {"email": email})
+            except Driver.DoesNotExist:
+                messages.error(request, "Driver profile not found. Contact support.")
+                return render(request, "login.html", {"email": email})
+            
         if check_password(password, user.password):
             # set session values
             request.session['user_id'] = user.id
@@ -222,7 +231,7 @@ def driver_dashboard(request):
 @login_required_role(allowed_roles=["admin"])
 def admin_dashboard(request):
     user = User.objects.get(id=request.session['user_id'])
-    return render(request, "admin_dashboard.html", {"user": user})
+    return render(request, "base.html", {"user": user})
 
 
 
@@ -238,15 +247,17 @@ def customer_register(request):
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already registered")
             return redirect("customer_register")
+        if User.objects.filter(phone=phone).exists():
+            messages.error(request, "Phone already registered")
+            return redirect("customer_register")
 
-        # hash the password before saving
         hashed_password = make_password(password)
 
         user = User.objects.create(
             name=name,
             email=email.lower(),
             phone=phone,
-            password=hashed_password,   # hashed value stored here
+            password=hashed_password,   
             gender=gender,
             role="customer",
             created_at=timezone.now()

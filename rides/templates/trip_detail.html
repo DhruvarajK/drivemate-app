@@ -20,8 +20,7 @@
     .kbd { background:#111827; color:white; padding:.15rem .5rem; border-radius:.35rem; font-size:.8rem; }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-      /* cursor for desktop dragging */
+
       .draggable { cursor: grab; }
       .draggable.dragging { cursor: grabbing; user-select: none; }
     </style>
@@ -121,7 +120,6 @@
           </div>
         </div>
 
-        <!-- Payment success block (preserve behavior) -->
         {% if payment.status == 'success' %}
           <div class="bg-white rounded-2xl shadow p-6">
             <h3 class="text-lg font-semibold mb-3">Payment Completed</h3>
@@ -141,7 +139,6 @@
         {% endif %}
       </div>
 
-      <!-- Right: Assigned driver & actions -->
       <aside class="space-y-4">
         {% if ride.driver %}
           <div class="bg-white rounded-2xl shadow p-6">

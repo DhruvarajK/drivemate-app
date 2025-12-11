@@ -1,0 +1,150 @@
+{% extends "dashboard.html" %}
+{% block title %}Vehicles Management - Admin Panel{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-semibold text-gray-900 tracking-tight">Vehicles Management</h1>
+        <p class="mt-1 text-sm text-gray-500">Oversee fleet status, driver assignments, and vehicle details.</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-white border border-gray-200 rounded-lg p-5 mb-8 shadow-sm">
+        <form method="get" class="flex flex-col sm:flex-row items-end gap-4">
+            
+            <!-- Owner ID Filter -->
+            <div class="w-full sm:w-48">
+                <label class="block text-xs font-medium text-gray-600 mb-1 uppercase tracking-wide">Owner ID</label>
+                <input type="number" name="owner_id" value="{{ request.GET.owner_id }}" placeholder="e.g. 123"
+                       class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+            </div>
+
+            <!-- Verified Status Filter -->
+            <div class="w-full sm:w-48">
+                <label class="block text-xs font-medium text-gray-600 mb-1 uppercase tracking-wide">Verified Status</label>
+                <select name="verified" class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+                    <option value="">All Vehicles</option>
+                    <option value="true" {% if request.GET.verified == 'true' %}selected{% endif %}>Verified</option>
+                    <option value="false" {% if request.GET.verified == 'false' %}selected{% endif %}>Not Verified</option>
+                </select>
+            </div>
+
+            <!-- Filter Button -->
+            <button type="submit" class="w-full sm:w-auto px-5 py-2 text-sm font-medium text-white bg-gray-800 border border-transparent rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-800 transition-all shadow-sm h-[38px]">
+                Filter Results
+            </button>
+        </form>
+    </div>
+
+    <!-- Table Container -->
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wide text-gray-500 font-medium">
+                        <th class="px-6 py-4 w-16 text-center">ID</th>
+                        <th class="px-6 py-4">Vehicle Info</th>
+                        <th class="px-6 py-4">Owner</th>
+                        <th class="px-6 py-4">Current Driver</th>
+                        <th class="px-6 py-4">Type</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-center">Active</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    {% for vehicle in vehicles %}
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        
+                        <!-- ID -->
+                        <td class="px-6 py-4 text-center text-gray-400 font-mono text-xs">
+                            #{{ vehicle.id }}
+                        </td>
+
+                        <!-- Vehicle Info (Make, Model, Reg) -->
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">{{ vehicle.make }} {{ vehicle.model }}</div>
+                            <div class="mt-1">
+                                <span class="font-mono text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                                    {{ vehicle.registration_number }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Owner -->
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-[10px] text-blue-600 border border-blue-100">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span class="text-gray-700 text-sm">{{ vehicle.owner.name }}</span>
+                            </div>
+                        </td>
+
+                        <!-- Current Driver -->
+                        <td class="px-6 py-4">
+                            {% if vehicle.current_driver %}
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-[10px] text-white">
+                                        <i class="fas fa-id-card-alt"></i>
+                                    </div>
+                                    <span class="text-gray-900 font-medium text-sm">{{ vehicle.current_driver }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-gray-400 text-xs italic">Not Assigned</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Type -->
+                        <td class="px-6 py-4 text-gray-600 text-xs uppercase tracking-wide font-medium">
+                            {{ vehicle.vehicle_type }}
+                        </td>
+
+                        <!-- Verified Status -->
+                        <td class="px-6 py-4">
+                            {% if vehicle.verified %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
+                                    <i class="fas fa-check-circle"></i> Verified
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                    <i class="fas fa-clock"></i> Pending
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Active Status -->
+                        <td class="px-6 py-4 text-center">
+                            {% if vehicle.active %}
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="w-8 h-4 bg-green-500 rounded-full relative">
+                                        <div class="w-2 h-2 bg-white rounded-full absolute right-1 top-1 shadow-sm"></div>
+                                    </div>
+                                    <span class="text-[10px] text-gray-500">Yes</span>
+                                </div>
+                            {% else %}
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="w-8 h-4 bg-gray-300 rounded-full relative">
+                                        <div class="w-2 h-2 bg-white rounded-full absolute left-1 top-1 shadow-sm"></div>
+                                    </div>
+                                    <span class="text-[10px] text-gray-400">No</span>
+                                </div>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-400">
+                                <i class="fas fa-car-crash text-4xl mb-3 text-gray-200"></i>
+                                <p class="text-base font-medium text-gray-500">No vehicles found</p>
+                                <p class="text-sm mt-1">Try adjusting your filters.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

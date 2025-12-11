@@ -5,6 +5,7 @@ from django.urls import path
 from accounts.views import *
 from rides.views import *
 from payments.views import *
+from myadmin.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,7 +21,6 @@ urlpatterns = [
 
     path("dashboard/customer/", customer_dashboard, name="customer_dashboard"),
     path("dashboard/driver/", driver_dashboard, name="driver_dashboard"),
-    path("dashboard/admin/", admin_dashboard, name="admin_dashboard"),
     
     path("customer/profile/", customer_profile_view, name="customer_profile"),
     path("customer/profile/edit/", customer_profile_edit, name="customer_profile_edit"),
@@ -56,6 +56,23 @@ urlpatterns = [
     path('driver/payment-history/', driver_payment_history, name='driver_payment_history'),
     
     path("api/driver/toggle-availability/", api_toggle_driver_availability, name="api_toggle_availability"),
+    
+    path('dashboard/', AdminDashboardView.as_view(), name='admin_dashboard'),
+    path('revenue/', AdminRevenueView.as_view(), name='admin-revenue'),
+    path('rides/', AdminRidesListView.as_view(), name='admin-rides-list'),
+    path('users-management/', AdminUserManagementView.as_view(), name='admin-users-management'),
+    path('vehicles-management/', AdminVehiclesManagementView.as_view(), name='admin-vehicles-management'),
+    path('driver-verifications/', AdminDriverVerificationListView.as_view(), name='admin-driver-verifications'),
+    path('driver-verifications/<int:pk>/', AdminDriverVerificationDetailView.as_view(), name='admin-driver-verification-detail'),
+    path('vehicle-verifications/', AdminVehicleVerificationListView.as_view(), name='admin-vehicle-verifications'),
+    
+    
+    path('driver-verifications/<int:pk>/', AdminDriverVerificationDetailView.as_view(), name='admin-driver-verification-detail'),
+    path('driver-verifications/<int:pk>/verify/', admin_driver_verify, name='admin-driver-verify'),
+    path('driver-verifications/<int:pk>/reject/', admin_driver_reject, name='admin-driver-reject'),
+    path('vehicle-verifications/<int:pk>/', AdminVehicleVerificationDetailView.as_view(), name='admin-vehicle-verification-detail'),
+    path('vehicle-verifications/<int:pk>/approve/', admin_vehicle_approve, name='admin-vehicle-approve'),
+    path('vehicle-verifications/<int:pk>/reject/', admin_vehicle_reject, name='admin-vehicle-reject'),
 
 ]
 

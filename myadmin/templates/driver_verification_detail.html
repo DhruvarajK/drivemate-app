@@ -1,0 +1,190 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Driver Detail - Admin Panel{% endblock %}
+
+{% block content %}
+    <!-- Breadcrumb / Back Link -->
+    <div class="mb-6">
+        <a href="{% url 'admin-driver-verifications' %}" class="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1 transition-colors">
+            <i class="fas fa-arrow-left text-xs"></i> Back to Verification List
+        </a>
+    </div>
+
+    <!-- Page Header & Main Actions -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-semibold text-gray-900 tracking-tight flex items-center gap-3">
+                {{ driver.user.name }}
+                {% if driver.verified %}
+                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200 font-medium tracking-wide">VERIFIED</span>
+                {% else %}
+                    <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full border border-yellow-200 font-medium tracking-wide">PENDING</span>
+                {% endif %}
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">Manage driver details and verification status.</p>
+        </div>
+
+        <!-- Action Buttons (Only if not verified) -->
+        {% if not driver.verified %}
+        <div class="flex items-center gap-3">
+            <form method="post" action="{% url 'admin-driver-reject' driver.id %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transition-all">
+                    Reject
+                </button>
+            </form>
+            <form method="post" action="{% url 'admin-driver-verify' driver.id %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-1 shadow-sm transition-all">
+                    Verify Driver
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left Column: Details -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Professional Info Card -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Professional Information</h3>
+                
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">License Number</dt>
+                        <dd class="mt-1 text-sm font-mono text-gray-900 bg-gray-50 inline-block px-2 py-1 rounded border border-gray-100">
+                            {{ driver.license_number }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">License Expiry</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {{ driver.license_expiry|default:"N/A" }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Experience</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ driver.experience_years }} years</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase">Current Rating</dt>
+                        <dd class="mt-1 text-sm text-gray-900 flex items-center gap-1">
+                            {{ driver.rating }} <i class="fas fa-star text-yellow-400 text-xs"></i>
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Status Card -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4 border-b border-gray-100 pb-2">Account Status</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Background Check</span>
+                        {% if driver.background_check_passed %}
+                            <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-full border border-green-100 flex items-center gap-1">
+                                <i class="fas fa-check-circle"></i> Passed
+                            </span>
+                        {% else %}
+                            <span class="text-xs font-medium text-red-700 bg-red-50 px-2 py-1 rounded-full border border-red-100 flex items-center gap-1">
+                                <i class="fas fa-times-circle"></i> Failed/Pending
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Verification Status</span>
+                        <span class="text-sm font-medium text-gray-900">{{ driver.verified|yesno:"Verified,Not Verified" }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Availability</span>
+                        <span class="text-sm font-medium text-gray-900">{{ driver.is_available|yesno:"Online,Offline" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ID Proof Preview -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-semibold text-gray-900">ID Proof Document</h3>
+                    
+                    {% if driver.id_proof %}
+                        <div id="pdf-viewer" class="h-full w-full flex items-center justify-center bg-gray-50 cursor-pointer" 
+                            onclick="window.open('{{ driver.id_proof.url }}', '_blank')">
+                            <canvas id="pdf-canvas" class="max-w-full max-h-full shadow-md"></canvas>
+                            <div id="pdf-loading" class="text-gray-500 text-sm">Loading preview...</div>
+                            <div id="pdf-error" class="text-red-600 text-sm hidden">Failed to load PDF preview</div>
+                        </div>
+
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+                        <script>
+                            // Optional: Set worker for better performance (recommended)
+                            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                            const url = '{{ driver.id_proof.url }}';
+                            const loadingDiv = document.getElementById('pdf-loading');
+                            const errorDiv = document.getElementById('pdf-error');
+                            const canvas = document.getElementById('pdf-canvas');
+                            const ctx = canvas.getContext('2d');
+
+                            pdfjsLib.getDocument(url).promise.then(pdf => {
+                                return pdf.getPage(1);  // First page only
+                            }).then(page => {
+                                // Adjust scale to fit nicely in h-64 (~256px height)
+                                // You can tweak this value: lower = more zoomed out
+                                const scale = 0.9;  // Try 0.7 to 1.2 depending on desired size
+                                const viewport = page.getViewport({ scale });
+
+                                canvas.height = viewport.height;
+                                canvas.width = viewport.width;
+
+                                // Render the page
+                                const renderContext = {
+                                    canvasContext: ctx,
+                                    viewport: viewport
+                                };
+
+                                return page.render(renderContext).promise;
+                            }).then(() => {
+                                loadingDiv.style.display = 'none';  // Hide loading message
+                            }).catch(err => {
+                                console.error('PDF render error:', err);
+                                loadingDiv.style.display = 'none';
+                                errorDiv.classList.remove('hidden');
+                                errorDiv.textContent = 'Preview unavailable';
+                            });
+                        </script>
+                    {% else %}
+                        <div class="text-center text-gray-400">
+                            <i class="fas fa-file-image text-3xl mb-2"></i>
+                            <p class="text-sm">No document uploaded</p>
+                        </div>
+                    {% endif %}
+            </div>
+
+        </div>
+
+        <div class="lg:col-span-1">
+            <div class="bg-white border border-gray-200 rounded-lg p-6 sticky top-6">
+                <h3 class="text-base font-semibold text-gray-900 mb-4 text-center">Profile Photo</h3>
+                
+                <div class="aspect-square w-full bg-gray-50 border border-gray-100 rounded-lg overflow-hidden flex items-center justify-center mb-4">
+                    {% if driver.profile_pic %}
+                        <img src="{{ driver.profile_pic.url }}" alt="{{ driver.user.name }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <i class="fas fa-user text-gray-300 text-6xl"></i>
+                    {% endif %}
+                </div>
+
+                <div class="text-center">
+                    <p class="text-xs text-gray-400">Registered Driver</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

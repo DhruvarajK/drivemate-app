@@ -1,0 +1,179 @@
+{% extends "dashboard.html" %}
+
+{% block title %}Rides List - Admin Panel{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-semibold text-gray-900 tracking-tight">All Rides</h1>
+        <p class="mt-1 text-sm text-gray-500">View and filter trip history across the platform.</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-white border border-gray-200 rounded-lg p-5 mb-8 shadow-sm">
+        <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Filter Rides</h2>
+        <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+            
+            <!-- Status Dropdown -->
+            <div class="lg:col-span-1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select name="status" class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+                    <option value="">All Statuses</option>
+                    {% for choice in ride_status_choices %}
+                    <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Range -->
+            <div class="lg:col-span-1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
+                <input type="date" name="start_date" value="{{ request.GET.start_date }}" 
+                       class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+            </div>
+            <div class="lg:col-span-1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">End Date</label>
+                <input type="date" name="end_date" value="{{ request.GET.end_date }}" 
+                       class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+            </div>
+
+            <!-- IDs -->
+            <div class="lg:col-span-1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Customer ID</label>
+                <input type="number" name="customer_id" value="{{ request.GET.customer_id }}" placeholder="ID..."
+                       class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+            </div>
+            <div class="lg:col-span-1">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Driver ID</label>
+                <input type="number" name="driver_id" value="{{ request.GET.driver_id }}" placeholder="ID..."
+                       class="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:bg-white focus:ring-2 focus:ring-gray-200 transition-colors">
+            </div>
+
+            <!-- Filter Button -->
+            <div class="lg:col-span-1">
+                <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-gray-800 border border-transparent rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-800 transition-all shadow-sm">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Container -->
+    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wide text-gray-500 font-medium">
+                        <th class="px-4 py-3 text-center w-16">ID</th>
+                        <th class="px-4 py-3">Participants</th>
+                        <th class="px-4 py-3">Vehicle / Mode</th>
+                        <th class="px-4 py-3">Route</th>
+                        <th class="px-4 py-3">Time</th>
+                        <th class="px-4 py-3">Status</th>
+                        <th class="px-4 py-3 text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    {% for ride in rides %}
+                    <tr class="hover:bg-gray-50 transition-colors group">
+                        
+                        <!-- ID -->
+                        <td class="px-4 py-3 text-center text-gray-400 font-mono text-xs">
+                            #{{ ride.id }}
+                        </td>
+
+                        <!-- Participants (Customer & Driver) -->
+                        <td class="px-4 py-3">
+                            <div class="flex flex-col gap-1">
+                                <div class="flex items-center gap-2 text-gray-900">
+                                    <i class="fas fa-user text-gray-400 text-xs w-3"></i>
+                                    <span class="font-medium text-xs">{{ ride.customer.name }}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <i class="fas fa-id-card text-gray-300 text-xs w-3"></i>
+                                    <span class="text-xs">{{ ride.driver.name|default:"Unassigned" }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Vehicle info -->
+                        <td class="px-4 py-3">
+                            <div class="flex flex-col">
+                                <span class="text-gray-900 font-medium text-xs">{{ ride.ride_mode }}</span>
+                                <span class="text-gray-500 text-[10px]">
+                                    {{ ride.vehicle.make|default:"-" }} {{ ride.vehicle.model|default:"" }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- Route (Start -> End) -->
+                        <td class="px-4 py-3 max-w-xs">
+                            <div class="flex flex-col gap-1">
+                                <div class="flex items-center gap-1 text-xs text-gray-600 truncate" title="{{ ride.start_location }}">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                    <span class="truncate">{{ ride.start_location }}</span>
+                                </div>
+                                <div class="pl-[2px]">
+                                    <div class="h-2 border-l border-dashed border-gray-300 ml-0.5"></div>
+                                </div>
+                                <div class="flex items-center gap-1 text-xs text-gray-600 truncate" title="{{ ride.end_location }}">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                    <span class="truncate">{{ ride.end_location }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Time -->
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                            {{ ride.start_time }}
+                        </td>
+
+                        <!-- Status Badge -->
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border
+                                {% if 'omplet' in ride.status or 'COMPLET' in ride.status %}
+                                    bg-green-50 text-green-700 border-green-200
+                                {% elif 'ancel' in ride.status or 'CANCEL' in ride.status %}
+                                    bg-red-50 text-red-700 border-red-200
+                                {% elif 'rogress' in ride.status or 'PROGRESS' in ride.status %}
+                                    bg-blue-50 text-blue-700 border-blue-200
+                                {% else %}
+                                    bg-gray-100 text-gray-600 border-gray-200
+                                {% endif %}">
+                                {{ ride.status }}
+                            </span>
+                        </td>
+
+                        <!-- Amount -->
+                        <td class="px-4 py-3 text-right font-medium text-gray-900">
+                            ₹{{ ride.total_amount|default:"0" }}
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-400">
+                                <i class="fas fa-route text-4xl mb-3 text-gray-200"></i>
+                                <p class="text-base font-medium text-gray-500">No rides found</p>
+                                <p class="text-sm mt-1">Try adjusting your filters to see results.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Optional Pagination Footer Stub (Visual Only) -->
+        <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-xs text-gray-500">
+                        Showing all results
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
