@@ -67,13 +67,13 @@ def login_view(request):
 
         if not email or not password:
             messages.error(request, "Please provide both email and password.")
-            return render(request, "accounts/login.html", {"email": email})
+            return render(request, "login.html", {"email": email})
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             messages.error(request, "Invalid email or password.")
-            return render(request, "accounts/login.html", {"email": email})
+            return render(request, "login.html", {"email": email})
 
         if not user.is_active:
             messages.error(request, "This account is inactive. Contact support.")
@@ -440,8 +440,6 @@ def driver_register(request):
     return render(request, "driver_register.html")
 
 
-
-# accounts/views.py
 from decimal import Decimal
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404

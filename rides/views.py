@@ -98,7 +98,6 @@ def select_driver(request, ride_id):
             try:
                 driver = Driver.objects.get(id=driver_id)
 
-                # ✅ Check if request already exists (exclude rejected)
                 existing_request = RideRequest.objects.filter(
                     ride=ride, driver=driver
                 ).exclude(status=RideRequest.Status.REJECTED).first()
@@ -119,12 +118,11 @@ def select_driver(request, ride_id):
                 messages.error(request, f"Error sending request: {str(e)}")
             return redirect('select_driver', ride_id=ride.id)
 
-    # GET request - show available drivers (with fallbacks)
     vehicle_type = request.GET.get('vehicle_type')
     transmission = request.GET.get('transmission')
     fuel_type = request.GET.get('fuel_type')
     min_rating = request.GET.get('min_rating', '0')
-    if min_rating == '':  # Error-proof: treat empty as 0
+    if min_rating == '':  
         min_rating = '0'
 
     requested_driver_ids = set(
@@ -140,7 +138,7 @@ def select_driver(request, ride_id):
             return float('inf')
 
     if ride.ride_mode == Ride.Mode.DRIVER_ONLY:
-        # Build base_qs with user filters
+
         base_qs = Driver.objects.select_related('user')
         if ride.female_driver_preference:
             base_qs = base_qs.filter(user__gender='female')
@@ -151,7 +149,6 @@ def select_driver(request, ride_id):
                 messages.error(request, "Invalid minimum rating value.")
                 return redirect('select_driver', ride_id=ride.id)
 
-        # Strict: add hard constraints
         strict_qs = base_qs.filter(
             is_available=True,
             verified=True,
@@ -168,13 +165,15 @@ def select_driver(request, ride_id):
             driver.already_requested = driver.id in requested_driver_ids
             driver_list.append(driver)
 
-        # If we have fewer than desired, add extra drivers relaxing hard filters (but keeping user filters)
         if len(driver_list) < DESIRED_RESULTS:
             existing_ids = [d.id for d in driver_list]
             needed = DESIRED_RESULTS - len(driver_list)
 
-            # Fetch extras from base_qs (user filters applied), exclude existing, order by rating
-            extra_qs = base_qs.exclude(id__in=existing_ids).order_by('-rating')[:needed]
+            extra_qs = base_qs.exclude(id__in=existing_ids)\
+                .filter(verified=True, background_check_passed=True)\
+                .order_by('-rating')[:needed]
+
+
             for driver in extra_qs:
                 distance = compute_distance_or_inf(
                     ride.start_latitude, ride.start_longitude,
@@ -200,11 +199,11 @@ def select_driver(request, ride_id):
             'vehicle_types': Vehicle.VehicleType.choices,
             'transmissions': Vehicle.Transmission.choices,
             'fuel_types': Vehicle.Fuel.choices,
-            'filters': request.GET,  # expose GET params to the template
+            'filters': request.GET,  
         }
 
     else:  # CAR_WITH_DRIVER
-        # Build base_qs with user filters
+        
         base_qs = Vehicle.objects.select_related('current_driver__user')
         if ride.female_driver_preference:
             base_qs = base_qs.filter(current_driver__user__gender='female')
@@ -242,13 +241,16 @@ def select_driver(request, ride_id):
             vehicle.driver = driver
             vehicle_list.append(vehicle)
 
-        # If fewer than desired, fetch additional vehicles relaxing hard constraints (but keeping user filters)
         if len(vehicle_list) < DESIRED_RESULTS:
             existing_vehicle_ids = [v.id for v in vehicle_list]
             needed = DESIRED_RESULTS - len(vehicle_list)
 
-            # Fetch extras from base_qs (user filters applied), relax hard, exclude existing, order by driver rating
-            extra_qs = base_qs.filter(active=True).exclude(id__in=existing_vehicle_ids).order_by('-current_driver__rating')[:needed]
+            extra_qs = base_qs.filter(
+                active=True,
+                current_driver__verified=True,
+                current_driver__background_check_passed=True
+            ).exclude(id__in=existing_vehicle_ids).order_by('-current_driver__rating')[:needed]
+
             for vehicle in extra_qs:
                 driver = vehicle.current_driver
                 distance = compute_distance_or_inf(
